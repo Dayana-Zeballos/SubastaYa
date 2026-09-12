@@ -1,0 +1,26 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.db
+*.db-shm
+*.db-wal
+appsettings.Development.json
+
+## Frontend
+node_modules/
+dist/
+.vite/
+
+## OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.log
+.env
+.env.local
