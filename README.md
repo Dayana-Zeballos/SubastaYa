@@ -34,4 +34,5 @@ Swagger: `https://localhost:7xxx/swagger` (ver puerto en la consola).
 
 ## Equipo
 
-- (completar nombres / usuarios GitHub)
+-Zeballos Dayana 
+-Zeballos Roxana 
