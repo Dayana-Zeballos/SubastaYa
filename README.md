@@ -34,5 +34,5 @@ Swagger: `https://localhost:7xxx/swagger` (ver puerto en la consola).
 
 ## Equipo
 
--Zeballos Dayana 
+-Zeballos Dayana Dayana-Zeballos
 -Zeballos Roxana 
