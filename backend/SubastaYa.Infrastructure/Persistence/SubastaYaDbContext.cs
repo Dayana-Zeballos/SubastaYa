@@ -12,6 +12,7 @@ public class SubastaYaDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Auction> Auctions => Set<Auction>();
     public DbSet<Bid> Bids => Set<Bid>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -49,13 +50,28 @@ public class SubastaYaDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<Category>(e =>
+        {
+            e.HasIndex(x => x.Slug).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(64).IsRequired();
+            e.Property(x => x.Slug).HasMaxLength(64).IsRequired();
+        });
+
         modelBuilder.Entity<Auction>(e =>
         {
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
             e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.ImageUrl).HasMaxLength(512);
             e.Property(x => x.StartingPrice).HasPrecision(18, 2);
+            e.Property(x => x.MinimumIncrement).HasPrecision(18, 2);
             e.Property(x => x.CurrentPrice).HasPrecision(18, 2);
             e.Property(x => x.RowVersion).IsRowVersion();
+            // El catálogo filtra por estado y ordena por cierre más próximo.
+            e.HasIndex(x => new { x.Status, x.EndsAt });
+            e.HasOne(x => x.Category)
+                .WithMany(x => x.Auctions)
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Seller)
                 .WithMany(x => x.AuctionsCreated)
                 .HasForeignKey(x => x.SellerId)
