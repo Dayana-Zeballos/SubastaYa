@@ -20,4 +20,7 @@ public class CategoryRepository : ICategoryRepository
             .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _context.Categories.AnyAsync(c => c.Id == id, cancellationToken);
 }

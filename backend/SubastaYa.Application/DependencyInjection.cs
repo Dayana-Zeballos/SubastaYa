@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IAuctionQueryService, AuctionQueryService>();
+        services.AddScoped<IAuctionCommandService, AuctionCommandService>();
 
         return services;
     }

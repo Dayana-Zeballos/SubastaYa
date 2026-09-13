@@ -351,3 +351,30 @@ con 409, con la salida real pegada.
 
 Sin ese script, el control de concurrencia es una afirmación sin respaldo. Con él, queda
 demostrado y es reproducible por cualquiera que clone el repositorio.
+
+## 19. Alta de una subasta
+
+**Estado:** Aceptada
+
+`POST /api/auctions` pide token. El vendedor no viaja en el body: sale de
+`ICurrentUserService`. Así nadie puede publicar a nombre de otra persona.
+
+`StartsAt` es opcional. Si no viene, la subasta abre en el momento y nace `Active`. Si viene
+a futuro, nace `Scheduled`. `EndsAt` es obligatorio y tiene que ser posterior al inicio.
+
+Validamos en el servicio, no solo con atributos del DTO, para que el mensaje de error
+explique la regla y no un código de validación genérico:
+
+- El precio base y el incremento mínimo tienen que ser mayores a cero, con como máximo dos
+  decimales, porque la base los guarda con esa precisión.
+- La fecha de inicio no puede estar en el pasado, con un margen de 2 minutos para el
+  desfasaje de reloj entre quien publica y el servidor.
+- La duración mínima es de 5 minutos y la máxima de 30 días. Una subasta de 30 segundos no
+  se puede pujar en la práctica, y una de meses deja plata retenida sin sentido.
+- La categoría tiene que existir.
+- Si mandan imagen, tiene que ser una URL `http` o `https`. Si no mandan, se guarda vacía.
+
+Todas las fechas se persisten y se leen como UTC. `datetime2` no guarda zona horaria, así
+que un converter de EF Core marca `Kind = Utc` al leer. Sin eso el JSON sale sin la `Z` y el
+frontend toma la fecha de cierre como hora local: el contador queda corrido según el huso
+de quien mira.
