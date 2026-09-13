@@ -29,6 +29,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.MapGet("/", () => Results.Redirect("/swagger"))
         .ExcludeFromDescription();
+
+    await app.PrepareDatabaseAsync();
 }
 
 app.UseHttpsRedirection();
