@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.Common.Models;
 using SubastaYa.Application.Features.Auctions;
+using SubastaYa.Application.Features.Bidding;
 
 namespace SubastaYa.API.Controllers;
 
@@ -12,15 +13,18 @@ public class AuctionsController : ControllerBase
 {
     private readonly IAuctionQueryService _auctionQueryService;
     private readonly IAuctionCommandService _auctionCommandService;
+    private readonly IBiddingService _biddingService;
     private readonly ICurrentUserService _currentUser;
 
     public AuctionsController(
         IAuctionQueryService auctionQueryService,
         IAuctionCommandService auctionCommandService,
+        IBiddingService biddingService,
         ICurrentUserService currentUser)
     {
         _auctionQueryService = auctionQueryService;
         _auctionCommandService = auctionCommandService;
+        _biddingService = biddingService;
         _currentUser = currentUser;
     }
 
@@ -65,5 +69,22 @@ public class AuctionsController : ControllerBase
         var auction = await _auctionCommandService.CreateAsync(request, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = auction.Id }, auction);
+    }
+
+    [HttpPost("{id:guid}/bids")]
+    [Authorize]
+    [ProducesResponseType(typeof(BidResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<BidResponse>> PlaceBid(
+        Guid id,
+        PlaceBidRequest request,
+        CancellationToken cancellationToken)
+    {
+        var bid = await _biddingService.PlaceBidAsync(id, request, cancellationToken);
+
+        return StatusCode(StatusCodes.Status201Created, bid);
     }
 }

@@ -106,6 +106,11 @@ public class AuctionRepository : IAuctionRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public Task<Auction?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _context.Auctions.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+
+    public void AddBid(Bid bid) => _context.Bids.Add(bid);
+
     // "Finalizadas" en el catálogo incluye las que vencieron y todavía esperan al worker.
     // Si no las contempláramos, desaparecerían de los tres filtros hasta que corra el cierre.
     private static IQueryable<Auction> ApplyStatusFilter(

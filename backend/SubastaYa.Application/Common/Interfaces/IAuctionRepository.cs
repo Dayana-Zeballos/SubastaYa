@@ -13,4 +13,9 @@ public interface IAuctionRepository
     Task<AuctionDetailProjection?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task AddAsync(Auction auction, CancellationToken cancellationToken = default);
+
+    // Con tracking: el RowVersion tiene que viajar en el UPDATE para poder devolver 409.
+    Task<Auction?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    void AddBid(Bid bid);
 }
