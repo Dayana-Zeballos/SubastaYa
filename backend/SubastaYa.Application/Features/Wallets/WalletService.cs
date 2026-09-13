@@ -1,5 +1,6 @@
 using SubastaYa.Application.Common.Exceptions;
 using SubastaYa.Application.Common.Interfaces;
+using SubastaYa.Application.Features.Audit;
 using SubastaYa.Domain.Entities;
 
 namespace SubastaYa.Application.Features.Wallets;
@@ -10,11 +11,16 @@ public class WalletService : IWalletService
 
     private readonly IWalletRepository _wallets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditService _audit;
 
-    public WalletService(IWalletRepository wallets, ICurrentUserService currentUser)
+    public WalletService(
+        IWalletRepository wallets,
+        ICurrentUserService currentUser,
+        IAuditService audit)
     {
         _wallets = wallets;
         _currentUser = currentUser;
+        _audit = audit;
     }
 
     public async Task<WalletBalanceResponse> GetBalanceAsync(CancellationToken cancellationToken = default)
@@ -37,7 +43,8 @@ public class WalletService : IWalletService
             throw new BusinessRuleException($"Los montos admiten hasta {AmountDecimals} decimales.");
         }
 
-        var wallet = await GetWalletAsync(_currentUser.UserId, cancellationToken);
+        var userId = _currentUser.UserId;
+        var wallet = await GetWalletAsync(userId, cancellationToken);
 
         wallet.AvailableBalance += request.Amount;
 
@@ -52,6 +59,14 @@ public class WalletService : IWalletService
 
         // Un solo SaveChanges: el RowVersion de Wallet cubre dos depósitos concurrentes (409).
         await _wallets.SaveChangesAsync(cancellationToken);
+
+        await _audit.LogAsync(
+            nameof(Wallet),
+            wallet.Id.ToString(),
+            AuditActions.WalletDeposit,
+            $"Monto={request.Amount:0.00}",
+            userId,
+            cancellationToken);
 
         return ToBalance(wallet);
     }
@@ -116,6 +131,65 @@ public class WalletService : IWalletService
             WalletId = wallet.Id,
             AuctionId = auctionId,
             Type = WalletTransactionType.Release,
+            Amount = amount,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    public async Task CaptureAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default)
+    {
+        if (amount <= 0)
+        {
+            throw new BusinessRuleException("El monto a cobrar tiene que ser mayor a cero.");
+        }
+
+        var wallet = await GetWalletAsync(userId, cancellationToken);
+
+        if (wallet.ReservedBalance < amount)
+        {
+            throw new BusinessRuleException("Fondos retenidos insuficientes para liquidar la venta.");
+        }
+
+        wallet.ReservedBalance -= amount;
+
+        _wallets.AddTransaction(new WalletTransaction
+        {
+            WalletId = wallet.Id,
+            AuctionId = auctionId,
+            Type = WalletTransactionType.Capture,
+            Amount = amount,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    public async Task CreditAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default)
+    {
+        if (amount <= 0)
+        {
+            throw new BusinessRuleException("El monto a acreditar tiene que ser mayor a cero.");
+        }
+
+        var wallet = await GetWalletAsync(userId, cancellationToken);
+
+        wallet.AvailableBalance += amount;
+
+        _wallets.AddTransaction(new WalletTransaction
+        {
+            WalletId = wallet.Id,
+            AuctionId = auctionId,
+            Type = WalletTransactionType.Deposit,
             Amount = amount,
             Description = description,
             CreatedAt = DateTime.UtcNow

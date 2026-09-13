@@ -111,6 +111,28 @@ public class AuctionRepository : IAuctionRepository
 
     public void AddBid(Bid bid) => _context.Bids.Add(bid);
 
+    public async Task<IReadOnlyList<Guid>> GetIdsDueForActivationAsync(
+        DateTime now,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Auctions
+            .AsNoTracking()
+            .Where(a => a.Status == AuctionStatus.Scheduled && a.StartsAt <= now)
+            .Select(a => a.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetIdsDueForClosureAsync(
+        DateTime now,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Auctions
+            .AsNoTracking()
+            .Where(a => a.Status == AuctionStatus.Active && a.EndsAt <= now)
+            .Select(a => a.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     // "Finalizadas" en el catálogo incluye las que vencieron y todavía esperan al worker.
     // Si no las contempláramos, desaparecerían de los tres filtros hasta que corra el cierre.
     private static IQueryable<Auction> ApplyStatusFilter(

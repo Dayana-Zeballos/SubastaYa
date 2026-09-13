@@ -1,3 +1,4 @@
+using SubastaYa.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Common.Interfaces;
 
@@ -24,9 +25,18 @@ public class UnitOfWork : IUnitOfWork
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _context.ChangeTracker.Clear();
+            // La capa Application no referencia EF: traducimos acá a ConflictException (409).
+            throw new ConflictException(
+                "Otra operación modificó el recurso mientras procesábamos la tuya. Volvé a intentarlo.");
+        }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
+            _context.ChangeTracker.Clear();
             throw;
         }
     }
