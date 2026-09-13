@@ -291,9 +291,17 @@ Es **idempotente**: verifica si ya hay datos y no duplica. Nunca borra la base. 
 arranca limpiando todo hace que cualquiera pierda lo que haya cargado a mano para probar
 algo, apenas reinicie el proyecto.
 
-Y las subastas vencidas se siembran ya en su estado final, además de que exista el worker.
-Así el catálogo muestra los cinco casos apenas se levanta el proyecto, sin depender de
-esperar un ciclo del worker para que se vean bien.
+Las dos subastas vencidas se siembran con la fecha de cierre pasada pero **todavía en
+estado `Active`**, no en su estado final. Es a propósito: así el worker tiene algo real que
+cerrar en su primer ciclo y se puede ver que la liquidación funciona. Si las dejáramos ya
+cerradas, el worker no tendría nada que hacer al levantar el proyecto y no habría forma de
+demostrar que anda sin esperar a que venza una subasta de verdad.
+
+Los saldos del seed están calculados para que cierren con las retenciones. `comprador1`
+tiene $45.000 retenidos porque lidera la subasta activa, y `sinfondos` tiene sus $500
+retenidos porque es el ganador pendiente de la subasta vencida, lo que además lo deja con
+saldo disponible en cero y sirve para probar el rechazo de puja por fondos insuficientes.
+Cada retención tiene su asiento en el ledger que la explica.
 
 La contraseña de los usuarios de prueba se documenta en el README.
 
