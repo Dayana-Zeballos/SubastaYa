@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Domain.Entities;
+using SubastaYa.Infrastructure.Persistence.Converters;
 
 namespace SubastaYa.Infrastructure.Persistence;
 
@@ -16,6 +17,12 @@ public class SubastaYaDbContext : DbContext
     public DbSet<Auction> Auctions => Set<Auction>();
     public DbSet<Bid> Bids => Set<Bid>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // Todas las fechas del sistema son UTC, tanto al escribir como al leer.
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
