@@ -7,7 +7,7 @@ public class Wallet
     public decimal AvailableBalance { get; set; }
     public decimal ReservedBalance { get; set; }
 
-    /// <summary>Optimistic concurrency token.</summary>
+    // Token de concurrencia optimista.
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
     public User User { get; set; } = null!;
