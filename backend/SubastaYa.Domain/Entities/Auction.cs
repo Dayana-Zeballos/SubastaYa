@@ -2,14 +2,12 @@ namespace SubastaYa.Domain.Entities;
 
 public enum AuctionStatus
 {
-    /// <summary>Próxima: publicada, pero la ventana de ofertas todavía no abrió.</summary>
+    // Próxima: publicada, pero la ventana de ofertas todavía no abrió.
     Scheduled = 0,
     Active = 1,
-
-    /// <summary>Finalizada: cerró con ganador y los fondos ya se liquidaron.</summary>
+    // Finalizada: cerró con ganador y los fondos ya se liquidaron.
     Finished = 2,
-
-    /// <summary>Desierta: venció sin recibir ninguna puja.</summary>
+    // Desierta: venció sin recibir ninguna puja.
     Deserted = 3,
     Cancelled = 4
 }
@@ -22,10 +20,8 @@ public class Auction
     public string ImageUrl { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public decimal StartingPrice { get; set; }
-
-    /// <summary>Monto mínimo que una nueva puja debe sumar sobre la oferta vigente.</summary>
+    // Monto mínimo que una nueva puja debe sumar sobre la oferta vigente.
     public decimal MinimumIncrement { get; set; }
-
     public decimal CurrentPrice { get; set; }
     public Guid SellerId { get; set; }
     public Guid? HighestBidderId { get; set; }
@@ -33,7 +29,7 @@ public class Auction
     public DateTime EndsAt { get; set; }
     public AuctionStatus Status { get; set; } = AuctionStatus.Scheduled;
 
-    /// <summary>Optimistic concurrency token (pujas concurrentes → 409).</summary>
+    // Token de concurrencia optimista (dos pujas simultáneas → 409).
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
     public Category Category { get; set; } = null!;
