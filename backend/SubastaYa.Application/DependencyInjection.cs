@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SubastaYa.Application.Features.Auctions;
 using SubastaYa.Application.Features.Auth;
 using SubastaYa.Application.Features.Categories;
+using SubastaYa.Application.Features.Wallets;
 
 namespace SubastaYa.Application;
 
@@ -13,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IAuctionQueryService, AuctionQueryService>();
         services.AddScoped<IAuctionCommandService, AuctionCommandService>();
+        services.AddScoped<IWalletService, WalletService>();
 
         return services;
     }
