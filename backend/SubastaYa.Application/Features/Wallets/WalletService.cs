@@ -19,7 +19,7 @@ public class WalletService : IWalletService
 
     public async Task<WalletBalanceResponse> GetBalanceAsync(CancellationToken cancellationToken = default)
     {
-        var wallet = await GetCurrentWalletAsync(cancellationToken);
+        var wallet = await GetWalletAsync(_currentUser.UserId, cancellationToken);
         return ToBalance(wallet);
     }
 
@@ -37,7 +37,7 @@ public class WalletService : IWalletService
             throw new BusinessRuleException($"Los montos admiten hasta {AmountDecimals} decimales.");
         }
 
-        var wallet = await GetCurrentWalletAsync(cancellationToken);
+        var wallet = await GetWalletAsync(_currentUser.UserId, cancellationToken);
 
         wallet.AvailableBalance += request.Amount;
 
@@ -56,13 +56,79 @@ public class WalletService : IWalletService
         return ToBalance(wallet);
     }
 
-    private async Task<Wallet> GetCurrentWalletAsync(CancellationToken cancellationToken)
+    public async Task ReserveAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default)
     {
-        var wallet = await _wallets.GetByUserIdAsync(_currentUser.UserId, cancellationToken);
+        if (amount <= 0)
+        {
+            throw new BusinessRuleException("El monto a retener tiene que ser mayor a cero.");
+        }
+
+        var wallet = await GetWalletAsync(userId, cancellationToken);
+
+        if (wallet.AvailableBalance < amount)
+        {
+            throw new BusinessRuleException("Saldo disponible insuficiente para cubrir la oferta.");
+        }
+
+        wallet.AvailableBalance -= amount;
+        wallet.ReservedBalance += amount;
+
+        _wallets.AddTransaction(new WalletTransaction
+        {
+            WalletId = wallet.Id,
+            AuctionId = auctionId,
+            Type = WalletTransactionType.Reserve,
+            Amount = amount,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    public async Task ReleaseAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default)
+    {
+        if (amount <= 0)
+        {
+            throw new BusinessRuleException("El monto a liberar tiene que ser mayor a cero.");
+        }
+
+        var wallet = await GetWalletAsync(userId, cancellationToken);
+
+        if (wallet.ReservedBalance < amount)
+        {
+            throw new BusinessRuleException("No hay fondos retenidos suficientes para liberar.");
+        }
+
+        wallet.ReservedBalance -= amount;
+        wallet.AvailableBalance += amount;
+
+        _wallets.AddTransaction(new WalletTransaction
+        {
+            WalletId = wallet.Id,
+            AuctionId = auctionId,
+            Type = WalletTransactionType.Release,
+            Amount = amount,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    private async Task<Wallet> GetWalletAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var wallet = await _wallets.GetByUserIdAsync(userId, cancellationToken);
 
         if (wallet is null)
         {
-            throw NotFoundException.For("billetera del usuario", _currentUser.UserId);
+            throw NotFoundException.For("billetera del usuario", userId);
         }
 
         return wallet;
