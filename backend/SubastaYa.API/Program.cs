@@ -17,6 +17,7 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHostedService<SubastaYa.API.Workers.AuctionClosureWorker>();
 
 var app = builder.Build();
 

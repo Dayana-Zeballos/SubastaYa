@@ -18,4 +18,12 @@ public interface IAuctionRepository
     Task<Auction?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     void AddBid(Bid bid);
+
+    Task<IReadOnlyList<Guid>> GetIdsDueForActivationAsync(
+        DateTime now,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> GetIdsDueForClosureAsync(
+        DateTime now,
+        CancellationToken cancellationToken = default);
 }

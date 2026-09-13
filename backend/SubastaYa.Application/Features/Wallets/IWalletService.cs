@@ -21,4 +21,20 @@ public interface IWalletService
         Guid? auctionId,
         string description,
         CancellationToken cancellationToken = default);
+
+    // Cobro del monto retenido al ganador (sale del reserved, no vuelve a available).
+    Task CaptureAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
+
+    // Acredita available del vendedor al liquidar una venta.
+    Task CreditAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
 }
