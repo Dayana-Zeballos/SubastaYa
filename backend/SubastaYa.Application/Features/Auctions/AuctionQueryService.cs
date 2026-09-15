@@ -1,3 +1,4 @@
+using SubastaYa.Application.Common;
 using SubastaYa.Application.Common.Exceptions;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.Common.Models;
@@ -56,7 +57,7 @@ public class AuctionQueryService : IAuctionQueryService
             NextMinimumBid = CalculateNextMinimumBid(auction),
             BidCount = auction.BidCount,
             SellerUserName = auction.SellerUserName,
-            HighestBidderAlias = BuildAlias(auction.HighestBidderUserName),
+            HighestBidderAlias = BidderAlias.FromUserName(auction.HighestBidderUserName),
             StartsAt = auction.StartsAt,
             EndsAt = auction.EndsAt,
             Status = ResolveStatus(auction, now),
@@ -132,16 +133,4 @@ public class AuctionQueryService : IAuctionQueryService
         auction.BidCount == 0
             ? auction.StartingPrice
             : auction.CurrentPrice + auction.MinimumIncrement;
-
-    private static string? BuildAlias(string? userName)
-    {
-        if (string.IsNullOrWhiteSpace(userName))
-        {
-            return null;
-        }
-
-        var visible = userName.Length <= 3 ? userName : userName[..3];
-
-        return visible + new string('*', Math.Max(3, userName.Length - visible.Length));
-    }
 }

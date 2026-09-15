@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.Features.Auctions;
+using SubastaYa.Application.Features.Bidding;
 using SubastaYa.Domain.Entities;
 
 namespace SubastaYa.Infrastructure.Persistence.Repositories;
@@ -110,6 +111,28 @@ public class AuctionRepository : IAuctionRepository
         _context.Auctions.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
     public void AddBid(Bid bid) => _context.Bids.Add(bid);
+
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _context.Auctions.AsNoTracking().AnyAsync(a => a.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<BidHistoryProjection>> GetBidsAsync(
+        Guid auctionId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Bids
+            .AsNoTracking()
+            .Where(b => b.AuctionId == auctionId)
+            .OrderByDescending(b => b.CreatedAt)
+            .ThenByDescending(b => b.Amount)
+            .Select(b => new BidHistoryProjection
+            {
+                Id = b.Id,
+                Amount = b.Amount,
+                CreatedAt = b.CreatedAt,
+                BidderUserName = b.Bidder.UserName
+            })
+            .ToListAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<Guid>> GetIdsDueForActivationAsync(
         DateTime now,

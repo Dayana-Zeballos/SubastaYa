@@ -6,4 +6,8 @@ public interface IBiddingService
         Guid auctionId,
         PlaceBidRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BidHistoryItemResponse>> GetBidsAsync(
+        Guid auctionId,
+        CancellationToken cancellationToken = default);
 }
