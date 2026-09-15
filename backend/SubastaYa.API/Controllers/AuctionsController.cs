@@ -56,6 +56,18 @@ public class AuctionsController : ControllerBase
         return Ok(await _auctionQueryService.GetByIdAsync(id, currentUserId, cancellationToken));
     }
 
+    // Historial público: seudónimos, sin ids de usuario.
+    [HttpGet("{id:guid}/bids")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IReadOnlyList<BidHistoryItemResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<BidHistoryItemResponse>>> GetBids(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await _biddingService.GetBidsAsync(id, cancellationToken));
+    }
+
     // El vendedor no viaja en el body: se resuelve desde el token.
     [HttpPost]
     [Authorize]

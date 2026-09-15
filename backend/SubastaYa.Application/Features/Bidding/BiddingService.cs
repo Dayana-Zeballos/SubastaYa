@@ -1,3 +1,4 @@
+using SubastaYa.Application.Common;
 using SubastaYa.Application.Common.Exceptions;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.Features.Audit;
@@ -150,6 +151,28 @@ public class BiddingService : IBiddingService
         }
 
         return response;
+    }
+
+    public async Task<IReadOnlyList<BidHistoryItemResponse>> GetBidsAsync(
+        Guid auctionId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await _auctions.ExistsAsync(auctionId, cancellationToken))
+        {
+            throw NotFoundException.For("subasta", auctionId);
+        }
+
+        var bids = await _auctions.GetBidsAsync(auctionId, cancellationToken);
+
+        return bids
+            .Select(b => new BidHistoryItemResponse
+            {
+                Id = b.Id,
+                Amount = b.Amount,
+                CreatedAt = b.CreatedAt,
+                BidderAlias = BidderAlias.FromUserName(b.BidderUserName) ?? "anon***"
+            })
+            .ToList();
     }
 
     private static void ValidateAuctionIsOpen(Auction auction, DateTime now)

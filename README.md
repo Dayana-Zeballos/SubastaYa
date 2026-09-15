@@ -48,6 +48,31 @@ Todos comparten la contraseña **`Subasta2026!`**.
 Para obtener un token: `POST /api/auth/login` con el email y la contraseña, y después pegar
 el token en el botón **Authorize** de Swagger.
 
+## Prueba de concurrencia (201 / 409)
+
+Con la API corriendo (`dotnet run` en `backend/SubastaYa.API`), desde la raíz del repo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\concurrency-bid-test.ps1
+```
+
+El script:
+
+1. Hace login como `comprador2@test.com`
+2. Toma una subasta activa del catálogo
+3. Dispara **dos** `POST /api/auctions/{id}/bids` idénticos en paralelo
+4. Espera ver **un 201** y **un 409** (conflicto de `RowVersion`)
+
+Ejemplo de salida esperada:
+
+```text
+Resultados: 201, 409
+OK: una puja entro (201) y la otra fue rechazada por concurrencia (409).
+```
+
+Si ambas dan 201 o ambas fallan, reiniciá la API (seed fresco) y volvé a correr el script
+sin otras pujas manuales en el medio.
+
 ## Equipo
 
 -Zeballos Dayana usuario de github (Dayana-Zeballos)

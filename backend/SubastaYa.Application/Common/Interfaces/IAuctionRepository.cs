@@ -1,4 +1,5 @@
 using SubastaYa.Application.Features.Auctions;
+using SubastaYa.Application.Features.Bidding;
 using SubastaYa.Domain.Entities;
 
 namespace SubastaYa.Application.Common.Interfaces;
@@ -18,6 +19,12 @@ public interface IAuctionRepository
     Task<Auction?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     void AddBid(Bid bid);
+
+    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BidHistoryProjection>> GetBidsAsync(
+        Guid auctionId,
+        CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Guid>> GetIdsDueForActivationAsync(
         DateTime now,
