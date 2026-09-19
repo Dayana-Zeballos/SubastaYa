@@ -1,4 +1,5 @@
 using SubastaYa.API.Extensions;
+using SubastaYa.API.Hubs;
 using SubastaYa.API.Middleware;
 using SubastaYa.API.Services;
 using SubastaYa.Application;
@@ -13,6 +14,20 @@ builder.Services.AddSwaggerWithJwt();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddSingleton<IAuctionNotifier, SignalRAuctionNotifier>();
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    // Localhost de cualquier puerto: cubre tanto wwwroot como Vite/React cuando lo decidamos.
+    options.AddPolicy("Frontend", policy => policy
+        .SetIsOriginAllowed(origin =>
+            Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            && (uri.Host == "localhost" || uri.Host == "127.0.0.1"))
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
+});
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplication();
@@ -35,8 +50,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auctions");
 
 app.Run();

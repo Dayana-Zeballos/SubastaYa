@@ -12,4 +12,19 @@ public interface IAuctionQueryService
         Guid id,
         Guid? currentUserId,
         CancellationToken cancellationToken = default);
+
+    Task<PagedResult<AuctionListItemResponse>> GetMineAsync(
+        Guid sellerId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default);
+
+    Task<PagedResult<AuctionListItemResponse>> GetPurchasesAsync(
+        Guid bidderId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default);
+
+    Task<PagedResult<AuctionListItemResponse>> GetParticipatedAsync(
+        Guid bidderId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default);
 }

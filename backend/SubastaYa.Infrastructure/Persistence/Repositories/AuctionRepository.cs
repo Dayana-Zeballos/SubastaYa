@@ -156,6 +156,73 @@ public class AuctionRepository : IAuctionRepository
             .ToListAsync(cancellationToken);
     }
 
+    public Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListBySellerAsync(
+        Guid sellerId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) =>
+        PageAsync(
+            _context.Auctions.AsNoTracking().Where(a => a.SellerId == sellerId),
+            page,
+            pageSize,
+            cancellationToken);
+
+    public Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListWonByBidderAsync(
+        Guid bidderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) =>
+        PageAsync(
+            _context.Auctions.AsNoTracking().Where(a =>
+                a.HighestBidderId == bidderId && a.Status == AuctionStatus.Finished),
+            page,
+            pageSize,
+            cancellationToken);
+
+    public Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListParticipatedAsync(
+        Guid bidderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) =>
+        PageAsync(
+            _context.Auctions.AsNoTracking().Where(a => a.Bids.Any(b => b.BidderId == bidderId)),
+            page,
+            pageSize,
+            cancellationToken);
+
+    private async Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> PageAsync(
+        IQueryable<Auction> query,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var totalItems = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(a => a.EndsAt)
+            .ThenBy(a => a.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new AuctionProjection
+            {
+                Id = a.Id,
+                Title = a.Title,
+                ImageUrl = a.ImageUrl,
+                CategoryName = a.Category.Name,
+                CategorySlug = a.Category.Slug,
+                StartingPrice = a.StartingPrice,
+                MinimumIncrement = a.MinimumIncrement,
+                CurrentPrice = a.CurrentPrice,
+                BidCount = a.Bids.Count,
+                StartsAt = a.StartsAt,
+                EndsAt = a.EndsAt,
+                Status = a.Status
+            })
+            .ToListAsync(cancellationToken);
+
+        return (items, totalItems);
+    }
+
     // "Finalizadas" en el catálogo incluye las que vencieron y todavía esperan al worker.
     // Si no las contempláramos, desaparecerían de los tres filtros hasta que corra el cierre.
     private static IQueryable<Auction> ApplyStatusFilter(

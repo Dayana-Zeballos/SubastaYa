@@ -33,4 +33,22 @@ public interface IAuctionRepository
     Task<IReadOnlyList<Guid>> GetIdsDueForClosureAsync(
         DateTime now,
         CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListBySellerAsync(
+        Guid sellerId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListWonByBidderAsync(
+        Guid bidderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)> ListParticipatedAsync(
+        Guid bidderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

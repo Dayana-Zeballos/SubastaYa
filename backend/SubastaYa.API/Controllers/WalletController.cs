@@ -39,4 +39,13 @@ public class WalletController : ControllerBase
     {
         return Ok(await _walletService.DepositAsync(request, cancellationToken));
     }
+
+    [HttpGet("transactions")]
+    [ProducesResponseType(typeof(IReadOnlyList<WalletTransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyList<WalletTransactionResponse>>> GetTransactions(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await _walletService.GetTransactionsAsync(cancellationToken));
+    }
 }

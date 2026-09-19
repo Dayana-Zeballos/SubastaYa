@@ -21,4 +21,16 @@ public class WalletRepository : IWalletRepository
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
         _context.SaveChangesAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<WalletTransaction>> GetTransactionsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.WalletTransactions
+            .AsNoTracking()
+            .Where(t => t.Wallet.UserId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ThenByDescending(t => t.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

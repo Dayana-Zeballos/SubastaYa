@@ -48,6 +48,22 @@ Todos comparten la contraseña **`Subasta2026!`**.
 Para obtener un token: `POST /api/auth/login` con el email y la contraseña, y después pegar
 el token en el botón **Authorize** de Swagger.
 
+## API lista para el frontend
+
+| Uso | Endpoint |
+|---|---|
+| Sesión | `POST /api/auth/login`, `GET /api/auth/me` |
+| Catálogo | `GET /api/auctions`, `GET /api/auctions/{id}`, `GET /api/categories` |
+| Historial | `GET /api/auctions/{id}/bids` |
+| Publicar / pujar | `POST /api/auctions`, `POST /api/auctions/{id}/bids` |
+| Billetera | `GET /api/wallet/balance`, `POST /api/wallet/deposit`, `GET /api/wallet/transactions` |
+| Mi cuenta | `GET /api/me/auctions`, `GET /api/me/purchases`, `GET /api/me/bids` |
+
+Tiempo real: hub SignalR en `/hubs/auctions`. El cliente llama `JoinAuction(auctionId)` y
+escucha el evento `auctionEvent` (`bidPlaced`, `auctionExtended`, `auctionActivated`,
+`auctionClosed`). Si el WebSocket no está, los GET de detalle e historial sirven para
+polling. En Development la API acepta CORS desde cualquier `localhost`.
+
 ## Prueba de concurrencia (201 / 409)
 
 Con la API corriendo (`dotnet run` en `backend/SubastaYa.API`), desde la raíz del repo:

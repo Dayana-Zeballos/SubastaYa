@@ -33,6 +33,46 @@ public class AuctionQueryService : IAuctionQueryService
         };
     }
 
+    public Task<PagedResult<AuctionListItemResponse>> GetMineAsync(
+        Guid sellerId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default) =>
+        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+            _auctions.ListBySellerAsync(sellerId, page, pageSize, ct), cancellationToken);
+
+    public Task<PagedResult<AuctionListItemResponse>> GetPurchasesAsync(
+        Guid bidderId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default) =>
+        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+            _auctions.ListWonByBidderAsync(bidderId, page, pageSize, ct), cancellationToken);
+
+    public Task<PagedResult<AuctionListItemResponse>> GetParticipatedAsync(
+        Guid bidderId,
+        MineQueryParameters parameters,
+        CancellationToken cancellationToken = default) =>
+        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+            _auctions.ListParticipatedAsync(bidderId, page, pageSize, ct), cancellationToken);
+
+    private async Task<PagedResult<AuctionListItemResponse>> PagePersonalAsync(
+        MineQueryParameters parameters,
+        Func<int, int, CancellationToken, Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)>> load,
+        CancellationToken cancellationToken)
+    {
+        ValidatePaging(parameters.Page, parameters.PageSize);
+
+        var now = DateTime.UtcNow;
+        var (items, totalItems) = await load(parameters.Page, parameters.PageSize, cancellationToken);
+
+        return new PagedResult<AuctionListItemResponse>
+        {
+            Items = items.Select(a => ToListItem(a, now)).ToList(),
+            Page = parameters.Page,
+            PageSize = parameters.PageSize,
+            TotalItems = totalItems
+        };
+    }
+
     public async Task<AuctionDetailResponse> GetByIdAsync(
         Guid id,
         Guid? currentUserId,
@@ -70,16 +110,7 @@ public class AuctionQueryService : IAuctionQueryService
 
     private static void Validate(AuctionQueryParameters parameters)
     {
-        if (parameters.Page < 1)
-        {
-            throw new BusinessRuleException("El número de página tiene que ser 1 o mayor.");
-        }
-
-        if (parameters.PageSize < 1 || parameters.PageSize > AuctionQueryParameters.MaxPageSize)
-        {
-            throw new BusinessRuleException(
-                $"El tamaño de página tiene que estar entre 1 y {AuctionQueryParameters.MaxPageSize}.");
-        }
+        ValidatePaging(parameters.Page, parameters.PageSize);
 
         if (parameters.MinPrice < 0 || parameters.MaxPrice < 0)
         {
@@ -90,6 +121,20 @@ public class AuctionQueryService : IAuctionQueryService
             && parameters.MinPrice > parameters.MaxPrice)
         {
             throw new BusinessRuleException("El precio mínimo no puede ser mayor que el máximo.");
+        }
+    }
+
+    private static void ValidatePaging(int page, int pageSize)
+    {
+        if (page < 1)
+        {
+            throw new BusinessRuleException("El número de página tiene que ser 1 o mayor.");
+        }
+
+        if (pageSize < 1 || pageSize > AuctionQueryParameters.MaxPageSize)
+        {
+            throw new BusinessRuleException(
+                $"El tamaño de página tiene que estar entre 1 y {AuctionQueryParameters.MaxPageSize}.");
         }
     }
 
