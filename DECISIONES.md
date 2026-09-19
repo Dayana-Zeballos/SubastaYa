@@ -164,8 +164,8 @@ todavía no esté mergeada, así ninguna de las dos queda esperando a la otra.
 | `GET /api/auth/me` | Autenticado |
 | `POST /api/auctions` | Autenticado |
 | `POST /api/auctions/{id}/bids` | Autenticado |
-| `GET /api/wallet/balance`, `POST /api/wallet/deposit` | Autenticado |
-| Mis Compras / Mis Publicaciones | Autenticado |
+| `GET /api/wallet/balance`, `POST /api/wallet/deposit`, `GET /api/wallet/transactions` | Autenticado |
+| `GET /api/me/auctions`, `GET /api/me/purchases`, `GET /api/me/bids` | Autenticado |
 
 El catálogo queda público a propósito: es la vitrina del sitio y pedir login para mirar
 espantaría a cualquier visitante. El historial de ofertas también es público, pero mostrando
@@ -268,13 +268,11 @@ consultar la API cada 2 o 3 segundos desde el frontend, que funciona pero genera
 constante incluso cuando no pasa nada y siempre muestra información con unos segundos de
 atraso.
 
-La condición que nos ponemos es que esté cableado de verdad y no a medias: el hub registrado
-en `Program.cs`, el `MapHub` en el pipeline, el notificador inyectado y el servicio de pujas
-llamándolo cuando entra una puja o cuando se extiende el tiempo. Tener las clases escritas
-pero sin registrar es peor que no tenerlas, porque parece implementado y no hace nada.
-
-Si sobre el final no llegamos a cablearlo, caemos a consultas periódicas, que es una
-degradación aceptable.
+Quedó cableado de verdad: hub en `/hubs/auctions`, `AddSignalR` y `MapHub` en `Program.cs`,
+`IAuctionNotifier` inyectado y llamado al pujar, al extender por anti-sniping, al activar
+y al cerrar. El cliente entra a un grupo con `JoinAuction(auctionId)` y recibe
+`auctionEvent`. El catálogo y el detalle siguen sirviendo para polling: si el WebSocket
+cae, el frontend puede seguir preguntando cada 2 o 3 segundos sin otro endpoint.
 
 ## 15. Datos semilla
 
@@ -291,9 +289,17 @@ Es **idempotente**: verifica si ya hay datos y no duplica. Nunca borra la base. 
 arranca limpiando todo hace que cualquiera pierda lo que haya cargado a mano para probar
 algo, apenas reinicie el proyecto.
 
-Y las subastas vencidas se siembran ya en su estado final, además de que exista el worker.
-Así el catálogo muestra los cinco casos apenas se levanta el proyecto, sin depender de
-esperar un ciclo del worker para que se vean bien.
+Las dos subastas vencidas se siembran con la fecha de cierre pasada pero **todavía en
+estado `Active`**, no en su estado final. Es a propósito: así el worker tiene algo real que
+cerrar en su primer ciclo y se puede ver que la liquidación funciona. Si las dejáramos ya
+cerradas, el worker no tendría nada que hacer al levantar el proyecto y no habría forma de
+demostrar que anda sin esperar a que venza una subasta de verdad.
+
+Los saldos del seed están calculados para que cierren con las retenciones. `comprador1`
+tiene $45.000 retenidos porque lidera la subasta activa, y `sinfondos` tiene sus $500
+retenidos porque es el ganador pendiente de la subasta vencida, lo que además lo deja con
+saldo disponible en cero y sirve para probar el rechazo de puja por fondos insuficientes.
+Cada retención tiene su asiento en el ledger que la explica.
 
 La contraseña de los usuarios de prueba se documenta en el README.
 
@@ -313,6 +319,9 @@ en vivo, donde el temporizador, el historial de ofertas y el estado de liderazgo
 todo el tiempo y conviene que sean componentes con estado. A cambio, hay que configurar
 CORS, el proxy de desarrollo y el build.
 
+El backend ya deja CORS abierto a `localhost` / `127.0.0.1` con credenciales, así cualquiera
+de las dos opciones puede hablar con la API sin otro cambio de servidor.
+
 ## 17. Flujo de ramas
 
 **Estado:** Aceptada
@@ -323,6 +332,9 @@ master          ← solo entregas, vía PR desde master_dev
        ├─ master_roxana  → PR a master_dev
        └─ master_dayana  → PR a master_dev
 ```
+
+También se puede abrir una `feature/<tema>` desde `master_dev` y mandar el PR a
+`master_dev`. Lo que no hacemos es commitear directo en `master` ni en `master_dev`.
 
 Nunca commiteamos directo en `master`. Todo entra por Pull Request, incluso los cambios
 chicos, y quien no escribió el código lo revisa antes de mergear.
@@ -337,9 +349,50 @@ archivo ya se ve en el diff.
 El README lleva los pasos completos de build, configuración de la base, migraciones y
 ejecución, más las credenciales de los usuarios de prueba y la URL de Swagger.
 
-Incluye además el **stress test de concurrencia**: un script que dispara dos pujas idénticas
-en simultáneo sobre la misma subasta y muestra que una entra con 201 y la otra es rechazada
-con 409, con la salida real pegada.
+Incluye además el **stress test de concurrencia**: `scripts/concurrency-bid-test.ps1`
+dispara dos pujas idénticas en simultáneo sobre la misma subasta. Lo esperado es un 201 y
+un 409. El comando está en el README.
 
 Sin ese script, el control de concurrencia es una afirmación sin respaldo. Con él, queda
 demostrado y es reproducible por cualquiera que clone el repositorio.
+
+## 19. Alta de una subasta
+
+**Estado:** Aceptada
+
+`POST /api/auctions` pide token. El vendedor no viaja en el body: sale de
+`ICurrentUserService`. Así nadie puede publicar a nombre de otra persona.
+
+`StartsAt` es opcional. Si no viene, la subasta abre en el momento y nace `Active`. Si viene
+a futuro, nace `Scheduled`. `EndsAt` es obligatorio y tiene que ser posterior al inicio.
+
+Validamos en el servicio, no solo con atributos del DTO, para que el mensaje de error
+explique la regla y no un código de validación genérico:
+
+- El precio base y el incremento mínimo tienen que ser mayores a cero, con como máximo dos
+  decimales, porque la base los guarda con esa precisión.
+- La fecha de inicio no puede estar en el pasado, con un margen de 2 minutos para el
+  desfasaje de reloj entre quien publica y el servidor.
+- La duración mínima es de 5 minutos y la máxima de 30 días. Una subasta de 30 segundos no
+  se puede pujar en la práctica, y una de meses deja plata retenida sin sentido.
+- La categoría tiene que existir.
+- Si mandan imagen, tiene que ser una URL `http` o `https`. Si no mandan, se guarda vacía.
+
+Todas las fechas se persisten y se leen como UTC. `datetime2` no guarda zona horaria, así
+que un converter de EF Core marca `Kind = Utc` al leer. Sin eso el JSON sale sin la `Z` y el
+frontend toma la fecha de cierre como hora local: el contador queda corrido según el huso
+de quien mira.
+
+## 20. Estado actual
+
+**Hecho en backend**
+
+- Capas, Code-First, JWT, seeder, catálogo, alta, categorías.
+- Billetera (saldo, depósito, movimientos), pujas con escrow, 409, anti-sniping.
+- Worker de cierre y de activación, auditoría, historial de pujas seudonimizado.
+- Script 201/409, Mis publicaciones / compras / pujas, SignalR cableado, CORS de localhost.
+
+**Pendiente**
+
+- Decidir el stack de frontend (decisión 16) y construir las pantallas.
+- Consumir el hub o, si hace falta, caer a polling sobre los GET que ya existen.

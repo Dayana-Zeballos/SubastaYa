@@ -1,0 +1,43 @@
+namespace SubastaYa.Application.Features.Wallets;
+
+public interface IWalletService
+{
+    Task<WalletBalanceResponse> GetBalanceAsync(CancellationToken cancellationToken = default);
+
+    Task<WalletBalanceResponse> DepositAsync(DepositRequest request, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<WalletTransactionResponse>> GetTransactionsAsync(
+        CancellationToken cancellationToken = default);
+
+    // Mueven saldo y escriben el ledger, pero no hacen SaveChanges: el caller (la puja)
+    // las mete dentro de su propia transacción explícita.
+    Task ReserveAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
+
+    Task ReleaseAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
+
+    // Cobro del monto retenido al ganador (sale del reserved, no vuelve a available).
+    Task CaptureAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
+
+    // Acredita available del vendedor al liquidar una venta.
+    Task CreditAsync(
+        Guid userId,
+        decimal amount,
+        Guid? auctionId,
+        string description,
+        CancellationToken cancellationToken = default);
+}
