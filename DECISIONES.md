@@ -305,22 +305,15 @@ La contraseña de los usuarios de prueba se documenta en el README.
 
 ## 16. Frontend
 
-**Estado:** Pendiente
+**Estado:** Aceptada
 
-Tenemos que definirlo entre las dos. Las dos opciones sobre la mesa:
+Vamos con **React y Vite** en `frontend/`, separado de la API. La sala en vivo cambia
+todo el tiempo (temporizador, historial, liderazgo) y conviene que sean componentes con
+estado. El backend ya deja CORS abierto a `localhost` / `127.0.0.1` con credenciales y el
+hub SignalR está en `/hubs/auctions`.
 
-**HTML, CSS y JavaScript vanilla con Bootstrap**, servido como archivos estáticos desde
-`wwwroot` del proyecto API. Sin build step no hay configuración de CORS, ni proxy de
-desarrollo, ni un segundo proceso que levantar: un `dotnet run` y está todo andando. Más
-trabajo manual en la sala en vivo, donde hay que actualizar el DOM a mano.
-
-**React con Vite** en una carpeta `frontend/` separada. Mucho mejor para la sala de subasta
-en vivo, donde el temporizador, el historial de ofertas y el estado de liderazgo cambian
-todo el tiempo y conviene que sean componentes con estado. A cambio, hay que configurar
-CORS, el proxy de desarrollo y el build.
-
-El backend ya deja CORS abierto a `localhost` / `127.0.0.1` con credenciales, así cualquiera
-de las dos opciones puede hablar con la API sin otro cambio de servidor.
+Descartamos vanilla en `wwwroot` porque la sala se vuelve un lío de DOM a mano y las dos
+terminaríamos pisándonos en los mismos archivos.
 
 ## 17. Flujo de ramas
 

@@ -7,7 +7,7 @@ Plataforma de subastas en tiempo real con billetera (escrow), anti-sniping, work
 ## Stack
 
 - **Backend:** C# / ASP.NET Core 9 + Entity Framework Core (Code-First)
-- **Frontend:** (pendiente)
+- **Frontend:** React + Vite (en `frontend/`)
 - **Arquitectura:** Domain → Application → Infrastructure → API
 
 ## Estructura
@@ -28,6 +28,18 @@ dotnet tool restore
 cd backend/SubastaYa.API
 dotnet run
 ```
+
+## Cómo correr (frontend)
+
+Con la API levantada:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite queda en `http://localhost:5173` y proxya `/api` y `/hubs` a `http://localhost:5240`.
 
 En Development la API aplica las migraciones pendientes y carga los datos de prueba sola al
 arrancar, así que no hace falta correr `dotnet ef database update` a mano.
