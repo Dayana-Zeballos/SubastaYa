@@ -9,4 +9,8 @@ public interface IWalletRepository
     void AddTransaction(WalletTransaction transaction);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<WalletTransaction>> GetTransactionsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

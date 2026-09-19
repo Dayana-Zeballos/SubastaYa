@@ -6,7 +6,9 @@ public enum WalletTransactionType
     Reserve = 1,
     Release = 2,
     Capture = 3,
-    Refund = 4
+    Refund = 4,
+    // Acreditación al vendedor cuando el worker liquida una venta.
+    Payout = 5
 }
 
 public class WalletTransaction

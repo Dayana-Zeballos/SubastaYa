@@ -97,6 +97,6 @@ public class AuctionsController : ControllerBase
     {
         var bid = await _biddingService.PlaceBidAsync(id, request, cancellationToken);
 
-        return StatusCode(StatusCodes.Status201Created, bid);
+        return CreatedAtAction(nameof(GetBids), new { id }, bid);
     }
 }

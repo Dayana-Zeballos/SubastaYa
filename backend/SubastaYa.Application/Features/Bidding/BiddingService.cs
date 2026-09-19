@@ -19,19 +19,22 @@ public class BiddingService : IBiddingService
     private readonly ICurrentUserService _currentUser;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditService _audit;
+    private readonly IAuctionNotifier _notifier;
 
     public BiddingService(
         IAuctionRepository auctions,
         IWalletService wallets,
         ICurrentUserService currentUser,
         IUnitOfWork unitOfWork,
-        IAuditService audit)
+        IAuditService audit,
+        IAuctionNotifier notifier)
     {
         _auctions = auctions;
         _wallets = wallets;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
         _audit = audit;
+        _notifier = notifier;
     }
 
     public async Task<BidResponse> PlaceBidAsync(
@@ -149,6 +152,16 @@ public class BiddingService : IBiddingService
                 bidderId,
                 cancellationToken);
         }
+
+        await _notifier.NotifyAsync(new AuctionRealtimeEvent
+        {
+            Event = response.AntiSnipingApplied
+                ? AuctionRealtimeEvents.AuctionExtended
+                : AuctionRealtimeEvents.BidPlaced,
+            AuctionId = auctionId,
+            Amount = response.Amount,
+            EndsAt = response.AuctionEndsAt
+        }, cancellationToken);
 
         return response;
     }

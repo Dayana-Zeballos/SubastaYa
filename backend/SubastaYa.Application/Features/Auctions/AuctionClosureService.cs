@@ -13,17 +13,20 @@ public class AuctionClosureService : IAuctionClosureService
     private readonly IWalletService _wallets;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditService _audit;
+    private readonly IAuctionNotifier _notifier;
 
     public AuctionClosureService(
         IAuctionRepository auctions,
         IWalletService wallets,
         IUnitOfWork unitOfWork,
-        IAuditService audit)
+        IAuditService audit,
+        IAuctionNotifier notifier)
     {
         _auctions = auctions;
         _wallets = wallets;
         _unitOfWork = unitOfWork;
         _audit = audit;
+        _notifier = notifier;
     }
 
     public async Task ProcessDueAuctionsAsync(CancellationToken cancellationToken = default)
@@ -60,6 +63,8 @@ public class AuctionClosureService : IAuctionClosureService
 
     private async Task ActivateAsync(Guid auctionId, CancellationToken cancellationToken)
     {
+        var activated = false;
+
         await _unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
             var now = DateTime.UtcNow;
@@ -72,7 +77,13 @@ public class AuctionClosureService : IAuctionClosureService
             }
 
             auction.Status = AuctionStatus.Active;
+            activated = true;
         }, cancellationToken);
+
+        if (!activated)
+        {
+            return;
+        }
 
         await _audit.LogAsync(
             nameof(Auction),
@@ -81,6 +92,13 @@ public class AuctionClosureService : IAuctionClosureService
             "Activada por el worker al llegar StartsAt",
             userId: null,
             cancellationToken);
+
+        await _notifier.NotifyAsync(new AuctionRealtimeEvent
+        {
+            Event = AuctionRealtimeEvents.AuctionActivated,
+            AuctionId = auctionId,
+            Status = "active"
+        }, cancellationToken);
     }
 
     private async Task CloseAsync(Guid auctionId, CancellationToken cancellationToken)
@@ -138,6 +156,13 @@ public class AuctionClosureService : IAuctionClosureService
                 details,
                 userId: null,
                 cancellationToken);
+
+            await _notifier.NotifyAsync(new AuctionRealtimeEvent
+            {
+                Event = AuctionRealtimeEvents.AuctionClosed,
+                AuctionId = auctionId,
+                Status = action == AuditActions.AuctionFinished ? "finished" : "deserted"
+            }, cancellationToken);
         }
     }
 }

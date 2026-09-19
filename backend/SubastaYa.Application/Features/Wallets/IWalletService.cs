@@ -6,6 +6,9 @@ public interface IWalletService
 
     Task<WalletBalanceResponse> DepositAsync(DepositRequest request, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<WalletTransactionResponse>> GetTransactionsAsync(
+        CancellationToken cancellationToken = default);
+
     // Mueven saldo y escriben el ledger, pero no hacen SaveChanges: el caller (la puja)
     // las mete dentro de su propia transacción explícita.
     Task ReserveAsync(

@@ -71,6 +71,24 @@ public class WalletService : IWalletService
         return ToBalance(wallet);
     }
 
+    public async Task<IReadOnlyList<WalletTransactionResponse>> GetTransactionsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var transactions = await _wallets.GetTransactionsByUserIdAsync(_currentUser.UserId, cancellationToken);
+
+        return transactions
+            .Select(t => new WalletTransactionResponse
+            {
+                Id = t.Id,
+                Type = t.Type.ToString().ToLowerInvariant(),
+                Amount = t.Amount,
+                Description = t.Description,
+                CreatedAt = t.CreatedAt,
+                AuctionId = t.AuctionId
+            })
+            .ToList();
+    }
+
     public async Task ReserveAsync(
         Guid userId,
         decimal amount,
@@ -189,7 +207,7 @@ public class WalletService : IWalletService
         {
             WalletId = wallet.Id,
             AuctionId = auctionId,
-            Type = WalletTransactionType.Deposit,
+            Type = WalletTransactionType.Payout,
             Amount = amount,
             Description = description,
             CreatedAt = DateTime.UtcNow
