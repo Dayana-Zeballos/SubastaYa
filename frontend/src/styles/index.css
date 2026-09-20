@@ -190,6 +190,11 @@ input {
   padding: 0.35rem 0.75rem;
 }
 
+.chip-active {
+  background: var(--forest);
+  color: #f7f1e6;
+}
+
 .error {
   margin: 0;
   color: var(--danger);
@@ -241,6 +246,37 @@ input {
 .ledger th:last-child,
 .ledger td:last-child {
   text-align: right;
+  white-space: nowrap;
+}
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  text-decoration: none;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1rem 1.2rem;
+  box-shadow: var(--shadow);
+}
+
+.activity-row:hover {
+  border-color: var(--copper);
+}
+
+.activity-price {
+  font-weight: 700;
   white-space: nowrap;
 }
 
