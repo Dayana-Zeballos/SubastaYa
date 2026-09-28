@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyAuctions, getMyBids, getMyPurchases } from "../api/me";
+import { formatCountdown } from "../lib/format";
+import { productName } from "../lib/productCopy";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -12,29 +14,29 @@ const TABS = [
   {
     id: "auctions",
     label: "Publicaciones",
-    empty: "Todavía no publicaste ninguna subasta.",
+    empty: "Todavía no publicaste nada.",
     load: getMyAuctions,
   },
   {
     id: "bids",
-    label: "Pujas",
-    empty: "Todavía no ofertaste en ninguna subasta.",
+    label: "Ofertas",
+    empty: "Todavía no ofertaste.",
     load: getMyBids,
   },
   {
     id: "purchases",
     label: "Compras",
-    empty: "Todavía no ganaste ninguna subasta.",
+    empty: "Todavía no te quedó ningún lote.",
     load: getMyPurchases,
   },
 ];
 
 const STATUS_LABELS = {
-  active: "Activa",
-  scheduled: "Programada",
+  active: "Abierta",
+  scheduled: "Próxima",
   closing: "Cerrando",
-  finished: "Finalizada",
-  deserted: "Desierta",
+  finished: "Cerrada",
+  deserted: "Nadie ofreció",
   cancelled: "Cancelada",
 };
 
@@ -99,11 +101,8 @@ export function MyActivityPage() {
 
   return (
     <section className="stack">
-      <p className="eyebrow">Cuenta</p>
       <h1>Mi actividad</h1>
-      <p className="lede">
-        Publicaciones, ofertas y compras del usuario del token. Desde cada fila se entra a la sala.
-      </p>
+      <p className="lede">Lo que publicaste, lo que ofertaste y lo que te quedó.</p>
 
       <div className="chips">
         {TABS.map((item) => (
@@ -120,7 +119,7 @@ export function MyActivityPage() {
       </div>
 
       {error ? <p className="error">{error}</p> : null}
-      {loading ? <p className="muted">Cargando {current.label.toLowerCase()}…</p> : null}
+      {loading ? <p className="muted">Cargando…</p> : null}
 
       {!loading && result ? (
         result.items.length === 0 ? (
@@ -132,18 +131,21 @@ export function MyActivityPage() {
                 <li key={auction.id}>
                   <Link className="activity-row" to={`/subastas/${auction.id}`}>
                     <span>
-                      <strong>{auction.title}</strong>
+                      <strong>{productName(auction.title)}</strong>
                       <span className="muted">
                         {" "}
                         · {auction.categoryName} · {STATUS_LABELS[auction.status] ?? auction.status}
                         {auction.status === "active" && auction.secondsRemaining > 0
-                          ? ` · ${formatRemaining(auction.secondsRemaining)}`
+                          ? ` · cierra en ${formatCountdown(auction.secondsRemaining)}`
                           : ""}
                       </span>
                     </span>
                     <span className="activity-price">
                       {money.format(auction.currentPrice)}
-                      <span className="muted"> · {auction.bidCount} pujas</span>
+                      <span className="muted">
+                        {" "}
+                        · {auction.bidCount} {auction.bidCount === 1 ? "oferta" : "ofertas"}
+                      </span>
                     </span>
                   </Link>
                 </li>
@@ -151,7 +153,7 @@ export function MyActivityPage() {
             </ul>
             {result.hasNextPage ? (
               <button type="button" className="primary" onClick={loadMore}>
-                Cargar más
+                Ver más
               </button>
             ) : null}
           </div>
@@ -159,9 +161,4 @@ export function MyActivityPage() {
       ) : null}
     </section>
   );
-}
-
-function formatRemaining(seconds) {
-  const minutes = Math.ceil(seconds / 60);
-  return minutes <= 1 ? "cierra en 1 min" : `cierra en ${minutes} min`;
 }

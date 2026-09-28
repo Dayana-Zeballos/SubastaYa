@@ -64,7 +64,7 @@ export function WalletPage() {
 
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setError("El monto a depositar tiene que ser mayor a cero.");
+      setError("Poné un monto.");
       return;
     }
 
@@ -74,7 +74,7 @@ export function WalletPage() {
       const nextBalance = await deposit(parsed);
       setBalance(nextBalance);
       setTransactions(await getTransactions());
-      setSuccess(`Se acreditaron ${money.format(parsed)} al disponible.`);
+      setSuccess(`Listo, sumaste ${money.format(parsed)}.`);
       setAmount("1000");
     } catch (err) {
       setError(err.message || "No se pudo depositar.");
@@ -84,16 +84,13 @@ export function WalletPage() {
   }
 
   if (loading) {
-    return <p className="muted">Cargando billetera…</p>;
+    return <p className="muted">Cargando…</p>;
   }
 
   return (
     <section className="stack">
-      <p className="eyebrow">Cuenta</p>
       <h1>Billetera</h1>
-      <p className="lede">
-        El dueño sale del token. Total es disponible más retenido por ofertas en curso.
-      </p>
+      <p className="lede">Lo que tenés libre y lo que está retenido en ofertas abiertas.</p>
 
       {balance ? (
         <div className="balance-grid">
@@ -113,7 +110,7 @@ export function WalletPage() {
       ) : null}
 
       <section className="panel">
-        <h2>Depositar</h2>
+        <h2>Cargar plata</h2>
         <form className="form" onSubmit={handleDeposit}>
           <label>
             Monto
@@ -130,7 +127,7 @@ export function WalletPage() {
           {error ? <p className="error">{error}</p> : null}
           {success ? <p className="lede">{success}</p> : null}
           <button type="submit" className="primary" disabled={submitting}>
-            {submitting ? "Acreditando…" : "Acreditar"}
+            {submitting ? "Cargando…" : "Cargar"}
           </button>
         </form>
       </section>
@@ -138,14 +135,14 @@ export function WalletPage() {
       <section className="panel">
         <h2>Movimientos</h2>
         {transactions.length === 0 ? (
-          <p className="muted">Todavía no hay movimientos en esta billetera.</p>
+          <p className="muted">Todavía no hay movimientos.</p>
         ) : (
           <div className="ledger-wrap">
             <table className="ledger">
               <thead>
                 <tr>
                   <th>Fecha</th>
-                  <th>Tipo</th>
+                  <th>Qué fue</th>
                   <th>Detalle</th>
                   <th>Monto</th>
                 </tr>

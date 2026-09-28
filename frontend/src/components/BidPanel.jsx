@@ -50,7 +50,7 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.message || "No se pudo cargar la consola de puja.");
+          setError(err.message || "No se pudo cargar.");
         }
       } finally {
         if (!cancelled) {
@@ -83,7 +83,7 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
 
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setError("El monto de la puja tiene que ser mayor a cero.");
+      setError("Poné un monto.");
       setSubmitting(false);
       return;
     }
@@ -99,8 +99,8 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
 
       setSuccess(
         bid.antiSnipingApplied
-          ? "Oferta enviada. La subasta se extendió 2 minutos (anti-sniping)."
-          : "Oferta enviada. Vas liderando y el monto quedó retenido en la billetera.",
+          ? "Oferta enviada. Se alargó un par de minutos el cierre."
+          : "Listo, vas ganando. El dinero quedó retenido.",
       );
       onPlaced?.(bid, detail);
     } catch (err) {
@@ -113,7 +113,7 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
   if (!ready || loading) {
     return (
       <section className="panel">
-        <p className="muted">Cargando consola de puja…</p>
+        <p className="muted">Cargando…</p>
       </section>
     );
   }
@@ -121,16 +121,16 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
   return (
     <section className="panel">
       <p className="eyebrow">Ofertar</p>
-      <h2>Consola de puja</h2>
+      <h2>Hacé tu oferta</h2>
       {auction ? (
         <p className="lede">
-          Precio actual {money.format(auction.currentPrice)}. Mínimo admitido{" "}
+          Ahora va {money.format(auction.currentPrice)}. Tenés que ofrecer al menos{" "}
           {money.format(minimum)}.
-          {auction.isCurrentUserWinning ? " Estás liderando." : null}
+          {auction.isCurrentUserWinning ? " Vas ganando." : null}
         </p>
       ) : null}
       {available !== null ? (
-        <p className="muted">Disponible en billetera: {money.format(available)}</p>
+        <p className="muted">Tenés {money.format(available)} disponibles.</p>
       ) : null}
 
       {!isAuthenticated ? (
@@ -138,14 +138,14 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
           <Link to="/ingresar" state={{ from: location.pathname }}>
             Ingresá
           </Link>{" "}
-          para ofertar. El postor sale del token, no del formulario.
+          para ofertar.
         </p>
       ) : null}
       {isSeller ? (
-        <p className="error">El vendedor no puede pujar en su propia subasta.</p>
+        <p className="error">No podés ofertar en un lote tuyo.</p>
       ) : null}
       {resolvedStatus && resolvedStatus !== "active" ? (
-        <p className="error">Esta subasta no está activa ({resolvedStatus}).</p>
+        <p className="muted">Esta ya no está abierta.</p>
       ) : null}
 
       <form className="form" onSubmit={handleSubmit}>
@@ -164,7 +164,7 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
         {error ? <p className="error">{error}</p> : null}
         {success ? <p className="lede">{success}</p> : null}
         <button type="submit" className="primary" disabled={!canBid || submitting}>
-          {submitting ? "Enviando…" : "Pujar"}
+          {submitting ? "Enviando…" : "Ofertar"}
         </button>
       </form>
     </section>

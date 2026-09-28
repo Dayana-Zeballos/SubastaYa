@@ -142,6 +142,7 @@ public class AuctionQueryService : IAuctionQueryService
     {
         Id = auction.Id,
         Title = auction.Title,
+        Description = auction.Description,
         ImageUrl = auction.ImageUrl,
         CategoryName = auction.CategoryName,
         CategorySlug = auction.CategorySlug,

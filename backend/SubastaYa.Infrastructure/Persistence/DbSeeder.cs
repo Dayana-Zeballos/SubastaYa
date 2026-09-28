@@ -219,7 +219,7 @@ public static class DbSeeder
         {
             Title = "Notebook Lenovo ThinkPad T14 Gen 3",
             Description = "Core i7 de 12ª generación, 16 GB de RAM y 512 GB SSD. Batería con 94% de salud y cargador original incluido.",
-            ImageUrl = "https://picsum.photos/seed/thinkpad/600/400",
+            ImageUrl = "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&h=600&q=80",
             CategoryId = categories["tecnologia"].Id,
             SellerId = seller.Id,
             StartingPrice = 30_000m,
@@ -237,7 +237,7 @@ public static class DbSeeder
         {
             Title = "Figura Bandai Gundam RX-78-2 sellada",
             Description = "Edición Master Grade en caja original sin abrir. Pieza de colección.",
-            ImageUrl = "https://picsum.photos/seed/gundam/600/400",
+            ImageUrl = "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=900&h=600&q=80",
             CategoryId = categories["coleccionables"].Id,
             SellerId = seller.Id,
             StartingPrice = 12_000m,
@@ -253,7 +253,7 @@ public static class DbSeeder
         {
             Title = "Fiat Cronos Drive 1.3 modelo 2021",
             Description = "62.000 km, service oficial al día, único dueño. Título y verificación policial en regla.",
-            ImageUrl = "https://picsum.photos/seed/cronos/600/400",
+            ImageUrl = "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&h=600&q=80",
             CategoryId = categories["vehiculos"].Id,
             SellerId = seller.Id,
             StartingPrice = 8_500_000m,
@@ -270,7 +270,7 @@ public static class DbSeeder
         {
             Title = "Campera de cuero vintage talle M",
             Description = "Cuero vacuno legítimo, forro interior de abrigo. Usada, en muy buen estado.",
-            ImageUrl = "https://picsum.photos/seed/campera/600/400",
+            ImageUrl = "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&h=600&q=80",
             CategoryId = categories["indumentaria"].Id,
             SellerId = seller.Id,
             StartingPrice = 400m,
@@ -288,7 +288,7 @@ public static class DbSeeder
         {
             Title = "Álbum de figuritas Mundial 1994 incompleto",
             Description = "Le faltan 23 figuritas. Tapa despegada en la esquina inferior.",
-            ImageUrl = "https://picsum.photos/seed/album/600/400",
+            ImageUrl = "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=900&h=600&q=80",
             CategoryId = categories["coleccionables"].Id,
             SellerId = seller.Id,
             StartingPrice = 25_000m,

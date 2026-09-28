@@ -8,6 +8,7 @@ public class AuctionProjection
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
     public string CategorySlug { get; set; } = string.Empty;
@@ -22,7 +23,6 @@ public class AuctionProjection
 
 public class AuctionDetailProjection : AuctionProjection
 {
-    public string Description { get; set; } = string.Empty;
     public string SellerUserName { get; set; } = string.Empty;
     public string? HighestBidderUserName { get; set; }
     public Guid? HighestBidderId { get; set; }

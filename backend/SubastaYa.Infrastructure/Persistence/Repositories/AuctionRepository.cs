@@ -58,6 +58,7 @@ public class AuctionRepository : IAuctionRepository
             {
                 Id = a.Id,
                 Title = a.Title,
+                Description = a.Description,
                 ImageUrl = a.ImageUrl,
                 CategoryName = a.Category.Name,
                 CategorySlug = a.Category.Slug,
@@ -207,6 +208,7 @@ public class AuctionRepository : IAuctionRepository
             {
                 Id = a.Id,
                 Title = a.Title,
+                Description = a.Description,
                 ImageUrl = a.ImageUrl,
                 CategoryName = a.Category.Name,
                 CategorySlug = a.Category.Slug,
