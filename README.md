@@ -23,6 +23,8 @@ frontend/
 
 ## Cómo correr (backend)
 
+SQL Server LocalDB, base `SubastaYa`.
+
 ```bash
 dotnet tool restore
 cd backend/SubastaYa.API
@@ -44,7 +46,13 @@ Vite queda en `http://localhost:5173` y proxya `/api` y `/hubs` a `http://localh
 En Development la API aplica las migraciones pendientes y carga los datos de prueba sola al
 arrancar, así que no hace falta correr `dotnet ef database update` a mano.
 
+El seeder es idempotente: si la base ya tiene lotes de corridas anteriores, no los pisa.
+Para una demo con el seed fresco, borramos la base `SubastaYa` de LocalDB y volvemos a
+levantar la API.
+
 Swagger: `http://localhost:5240` redirige a `/swagger`.
+
+Sitio: `http://localhost:5173` (catálogo, publicar, sala, billetera, actividad).
 
 ## Usuarios de prueba
 
@@ -103,5 +111,5 @@ sin otras pujas manuales en el medio.
 
 ## Equipo
 
--Zeballos Dayana usuario de github (Dayana-Zeballos)
--Zeballos Roxana  usuario de github (RoxanaZeballos)
+- Zeballos Dayana (Dayana-Zeballos)
+- Zeballos Roxana (RoxanaZeballos)
