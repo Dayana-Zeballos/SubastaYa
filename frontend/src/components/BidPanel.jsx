@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { placeBid } from "../api/bids";
 import { apiFetch, getToken } from "../api/client";
+import { placeBid } from "../api/bids";
 import { getBalance } from "../api/wallet";
 import { useAuth } from "../auth/AuthContext";
 

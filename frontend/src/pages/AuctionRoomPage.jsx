@@ -5,8 +5,8 @@ import { useAuth } from "../auth/AuthContext";
 import { BidPanel } from "../components/BidPanel";
 import { useAuctionHub } from "../hooks/useAuctionHub";
 import { useSecondsRemaining } from "../hooks/useSecondsRemaining";
-import { productBlurb, productName } from "../lib/productCopy";
 import { formatCountdown, formatDateTime, formatMoney, statusLabel } from "../lib/format";
+import { productBlurb, productName } from "../lib/productCopy";
 import { categoryImage, productImage } from "../lib/productImage";
 
 export function AuctionRoomPage() {
@@ -83,7 +83,8 @@ export function AuctionRoomPage() {
 
   const closed = remaining <= 0 || ["finished", "deserted", "cancelled", "closing"].includes(auction.status);
   const isSeller = Boolean(user && user.userName === auction.sellerUserName);
-  const winning = isSeller ? null : auction.isCurrentUserWinning;
+  const winning =
+    !user || isSeller || !auction.highestBidderAlias ? null : auction.isCurrentUserWinning;
   const name = productName(auction.title);
   const blurb = productBlurb(auction.description);
 

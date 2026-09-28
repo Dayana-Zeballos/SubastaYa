@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyAuctions, getMyBids, getMyPurchases } from "../api/me";
+import { formatCountdown } from "../lib/format";
 import { productName } from "../lib/productCopy";
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -68,7 +69,7 @@ export function MyActivityPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.message || "No se pudo cargar.");
+          setError(err.message || "No se pudo cargar tu actividad.");
         }
       })
       .finally(() => {
@@ -135,7 +136,7 @@ export function MyActivityPage() {
                         {" "}
                         · {auction.categoryName} · {STATUS_LABELS[auction.status] ?? auction.status}
                         {auction.status === "active" && auction.secondsRemaining > 0
-                          ? ` · ${formatRemaining(auction.secondsRemaining)}`
+                          ? ` · cierra en ${formatCountdown(auction.secondsRemaining)}`
                           : ""}
                       </span>
                     </span>
@@ -160,9 +161,4 @@ export function MyActivityPage() {
       ) : null}
     </section>
   );
-}
-
-function formatRemaining(seconds) {
-  const minutes = Math.ceil(seconds / 60);
-  return minutes <= 1 ? "cierra en un minuto" : `cierra en ${minutes} min`;
 }

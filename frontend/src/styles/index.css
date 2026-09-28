@@ -430,6 +430,10 @@ textarea {
   transition: transform var(--ease), box-shadow var(--ease);
 }
 
+.activity-row:hover {
+  border-color: var(--copper);
+}
+
 .activity-price {
   font-weight: 700;
   white-space: nowrap;
@@ -807,5 +811,9 @@ code {
   .footer-inner {
     grid-template-columns: 1fr;
     gap: 1.3rem;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr;
   }
 }
