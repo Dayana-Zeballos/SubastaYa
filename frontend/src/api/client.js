@@ -23,6 +23,14 @@ export class ApiError extends Error {
   }
 }
 
+function problemMessage(data, status) {
+  const fieldErrors = data?.errors && typeof data.errors === "object"
+    ? Object.values(data.errors).flat().find(Boolean)
+    : null;
+
+  return fieldErrors || data?.detail || data?.title || `Error ${status}`;
+}
+
 // Wrapper único: Bearer desde localStorage y errores ProblemDetails de la API.
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers ?? {}) };
@@ -46,7 +54,7 @@ export async function apiFetch(path, options = {}) {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw new ApiError(response.status, data?.title, data?.detail);
+    throw new ApiError(response.status, data?.title, problemMessage(data, response.status));
   }
 
   return data;

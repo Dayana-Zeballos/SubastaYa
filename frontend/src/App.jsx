@@ -3,6 +3,7 @@ import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { AppLayout } from "./layout/AppLayout";
 import { AuctionRoomPage } from "./pages/AuctionRoomPage";
 import { CatalogPage } from "./pages/CatalogPage";
+import { HowItWorksPage } from "./pages/HowItWorksPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MyActivityPage } from "./pages/MyActivityPage";
 import { PublishPage } from "./pages/PublishPage";
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/subastas/:id" element={<AuctionRoomPage />} />
         <Route path="/ingresar" element={<LoginPage />} />
         <Route path="/registro" element={<RegisterPage />} />
+        <Route path="/como-funciona" element={<HowItWorksPage />} />
         <Route
           path="/publicar"
           element={

@@ -32,8 +32,8 @@ export function RegisterPage() {
 
   return (
     <section className="auth-card">
-      <p className="eyebrow">Sesión</p>
       <h1>Crear cuenta</h1>
+      <p className="lede">Con esto después podés ofertar y publicar.</p>
       <form className="form" onSubmit={handleSubmit}>
         <label>
           Usuario

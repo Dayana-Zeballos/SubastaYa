@@ -2,20 +2,12 @@ import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
-const DEMO_USERS = [
-  { email: "vendedor@test.com", label: "Vendedor" },
-  { email: "comprador1@test.com", label: "Comprador 1" },
-  { email: "comprador2@test.com", label: "Comprador 2" },
-];
-
-const DEMO_PASSWORD = "Subasta2026!";
-
 export function LoginPage() {
   const { isAuthenticated, ready, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState("comprador2@test.com");
-  const [password, setPassword] = useState(DEMO_PASSWORD);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,12 +32,8 @@ export function LoginPage() {
 
   return (
     <section className="auth-card">
-      <p className="eyebrow">Sesión</p>
       <h1>Ingresar</h1>
-      <p className="lede">
-        El token se guarda en el navegador y todas las peticiones lo mandan en el header.
-        El id del usuario nunca viaja por body ni por URL.
-      </p>
+      <p className="lede">Entrá con tu mail y contraseña para ofertar o publicar.</p>
       <form className="form" onSubmit={handleSubmit}>
         <label>
           Email
@@ -72,24 +60,6 @@ export function LoginPage() {
           {submitting ? "Ingresando…" : "Entrar"}
         </button>
       </form>
-      <div className="chips">
-        {DEMO_USERS.map((demo) => (
-          <button
-            key={demo.email}
-            type="button"
-            className="chip"
-            onClick={() => {
-              setEmail(demo.email);
-              setPassword(DEMO_PASSWORD);
-            }}
-          >
-            {demo.label}
-          </button>
-        ))}
-      </div>
-      <p className="muted">
-        Usuarios de prueba del seeder. Contraseña: <code>{DEMO_PASSWORD}</code>
-      </p>
       <p className="muted">
         ¿No tenés cuenta? <Link to="/registro">Crear una</Link>
       </p>
