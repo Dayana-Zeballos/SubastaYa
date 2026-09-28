@@ -315,6 +315,18 @@ hub SignalR está en `/hubs/auctions`.
 Descartamos vanilla en `wwwroot` porque la sala se vuelve un lío de DOM a mano y las dos
 terminaríamos pisándonos en los mismos archivos.
 
+El token JWT queda en `localStorage`. El proxy de Vite manda `/api` y `/hubs` al
+`localhost:5240`: el front no hardcodea el origen y SignalR usa el mismo host que la
+página. La identidad del postor nunca viaja en el formulario; sale del token, igual que
+en la API.
+
+La sala entra al grupo con `JoinAuction` y escucha `auctionEvent`. Si el WebSocket cae,
+recargamos detalle e historial con los GET que ya existían. No inventamos un endpoint
+nuevo para el polling.
+
+Las pantallas cubren el recorrido: catálogo público, publicar, sala con consola de puja,
+billetera, mi actividad y cómo funciona. Publicar, billetera y actividad piden sesión.
+
 ## 17. Flujo de ramas
 
 **Estado:** Aceptada
@@ -385,7 +397,14 @@ de quien mira.
 - Worker de cierre y de activación, auditoría, historial de pujas seudonimizado.
 - Script 201/409, Mis publicaciones / compras / pujas, SignalR cableado, CORS de localhost.
 
+**Hecho en frontend**
+
+- React + Vite, sesión JWT, catálogo con filtros, publicar, sala en vivo.
+- Consola de puja (saldo, rechazo al vendedor, retención), billetera y mi actividad.
+- SignalR en la sala, con recarga por GET si cae el WebSocket.
+- Pie de página (UNAJ) y página de cómo funciona.
+
 **Pendiente**
 
-- Decidir el stack de frontend (decisión 16) y construir las pantallas.
-- Consumir el hub o, si hace falta, caer a polling sobre los GET que ya existen.
+- El PR de `master_dev` a `master` cuando cerremos la etapa.
+- Tests unitarios: hoy el respaldo reproducible es el script de concurrencia 201/409.
