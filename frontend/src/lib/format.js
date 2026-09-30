@@ -8,6 +8,24 @@ export function formatMoney(value) {
   return money.format(value ?? 0);
 }
 
+export function countdownUrgency(totalSeconds) {
+  const seconds = Math.max(0, Number(totalSeconds) || 0);
+
+  if (seconds <= 0) {
+    return "";
+  }
+
+  if (seconds <= 60) {
+    return "urgent";
+  }
+
+  if (seconds <= 300) {
+    return "warn";
+  }
+
+  return "";
+}
+
 export function formatCountdown(totalSeconds) {
   const seconds = Math.max(0, Number(totalSeconds) || 0);
 

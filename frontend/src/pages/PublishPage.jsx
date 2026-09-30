@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createAuction } from "../api/auctions";
 import { getCategories } from "../api/categories";
+import { useToast } from "../components/ToastContext";
 import { productImage } from "../lib/productImage";
 
 function toLocalInputValue(date) {
@@ -17,6 +18,7 @@ const defaultEndsAt = toLocalInputValue(new Date(Date.now() + 24 * 60 * 60 * 100
 
 export function PublishPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [categories, setCategories] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -62,6 +64,34 @@ export function PublishPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
+
+    const base = Number(startingPrice);
+    const increment = Number(minimumIncrement);
+    if (!(base > 0) || !(increment > 0)) {
+      const message = "El precio base y el incremento tienen que ser mayores a cero.";
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
+    const start = scheduleStart && startsAt ? new Date(startsAt) : new Date();
+    const end = endsAt ? new Date(endsAt) : null;
+    if (!end || Number.isNaN(end.getTime())) {
+      const message = "Poné una fecha de cierre.";
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
+    if (end <= start) {
+      const message = scheduleStart
+        ? "La fecha de cierre tiene que ser posterior a la de inicio."
+        : "La fecha de cierre tiene que ser posterior a ahora.";
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
     setSubmitting(true);
 
     const payload = {
@@ -82,7 +112,9 @@ export function PublishPage() {
       const auction = await createAuction(payload);
       navigate(`/subastas/${auction.id}`, { replace: true });
     } catch (err) {
-      setError(err.message || "No se pudo publicar.");
+      const message = err.message || "No se pudo publicar.";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setSubmitting(false);
     }

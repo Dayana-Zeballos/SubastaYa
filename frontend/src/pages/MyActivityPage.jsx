@@ -127,17 +127,23 @@ export function MyActivityPage() {
         ) : (
           <div className="stack">
             <ul className="activity-list">
-              {result.items.map((auction) => (
+              {result.items.map((auction) => {
+                const outcome = activityOutcome(tab, auction);
+
+                return (
                 <li key={auction.id}>
                   <Link className="activity-row" to={`/subastas/${auction.id}`}>
                     <span>
                       <strong>{productName(auction.title)}</strong>
-                      <span className="muted">
-                        {" "}
-                        · {auction.categoryName} · {STATUS_LABELS[auction.status] ?? auction.status}
-                        {auction.status === "active" && auction.secondsRemaining > 0
-                          ? ` · cierra en ${formatCountdown(auction.secondsRemaining)}`
-                          : ""}
+                      <span className="activity-meta">
+                        <span className={`activity-outcome ${outcome.tone}`}>{outcome.label}</span>
+                        <span className="muted">
+                          {auction.categoryName}
+                          {auction.status === "active" && auction.secondsRemaining > 0
+                            ? ` · cierra en ${formatCountdown(auction.secondsRemaining)}`
+                            : ""}
+                          {tab === "auctions" ? ` · recaudación ${money.format(auction.currentPrice)}` : ""}
+                        </span>
                       </span>
                     </span>
                     <span className="activity-price">
@@ -149,7 +155,8 @@ export function MyActivityPage() {
                     </span>
                   </Link>
                 </li>
-              ))}
+                );
+              })}
             </ul>
             {result.hasNextPage ? (
               <button type="button" className="primary" onClick={loadMore}>
@@ -161,4 +168,48 @@ export function MyActivityPage() {
       ) : null}
     </section>
   );
+}
+
+function activityOutcome(tab, auction) {
+  if (tab === "purchases") {
+    return { label: "Ganaste", tone: "activity-outcome-win" };
+  }
+
+  if (tab === "auctions") {
+    if (auction.status === "finished") {
+      return { label: "Adjudicada", tone: "activity-outcome-win" };
+    }
+
+    if (auction.status === "deserted") {
+      return { label: "Desierta", tone: "" };
+    }
+
+    if (auction.status === "scheduled") {
+      return { label: "Próxima", tone: "" };
+    }
+
+    if (auction.status === "closing") {
+      return { label: "Cerrando", tone: "" };
+    }
+
+    return { label: "Abierta", tone: "" };
+  }
+
+  if (auction.status === "active") {
+    return auction.isCurrentUserWinning
+      ? { label: "Vas ganando · sigue abierta", tone: "activity-outcome-win" }
+      : { label: "Te superaron · sigue abierta", tone: "activity-outcome-out" };
+  }
+
+  if (auction.status === "finished") {
+    return auction.isCurrentUserWinning
+      ? { label: "Ganaste", tone: "activity-outcome-win" }
+      : { label: "No ganaste", tone: "activity-outcome-out" };
+  }
+
+  if (auction.status === "deserted") {
+    return { label: "Desierta", tone: "" };
+  }
+
+  return { label: STATUS_LABELS[auction.status] ?? auction.status, tone: "" };
 }
