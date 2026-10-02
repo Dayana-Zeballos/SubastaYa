@@ -439,6 +439,33 @@ textarea {
   white-space: nowrap;
 }
 
+.activity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+.activity-outcome {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: #efe6d4;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.activity-outcome-win {
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.activity-outcome-out {
+  background: #f3d2b0;
+  color: #7c2d12;
+}
+
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -554,6 +581,56 @@ textarea {
   font-size: clamp(2rem, 5vw, 3.1rem);
   line-height: 1;
   font-weight: 600;
+}
+
+.countdown-warn {
+  color: #b45309;
+}
+
+.countdown-urgent {
+  color: var(--danger);
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes countdown-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.toast-stack {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 40;
+  display: grid;
+  gap: 0.55rem;
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.toast {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-hover);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.toast-info,
+.toast-ok {
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.toast-warn {
+  background: #b45309;
+  color: #fff7ed;
+}
+
+.toast-error {
+  background: var(--danger);
+  color: #fff5f5;
 }
 
 .badge {

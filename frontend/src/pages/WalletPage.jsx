@@ -103,7 +103,7 @@ export function WalletPage() {
             <p className="balance-amount">{money.format(balance.available)}</p>
           </article>
           <article className="panel balance-card">
-            <p className="eyebrow">Retenido</p>
+            <p className="eyebrow">Retenido / en garantía</p>
             <p className="balance-amount">{money.format(balance.reserved)}</p>
           </article>
         </div>

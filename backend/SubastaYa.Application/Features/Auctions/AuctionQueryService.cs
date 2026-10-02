@@ -37,24 +37,25 @@ public class AuctionQueryService : IAuctionQueryService
         Guid sellerId,
         MineQueryParameters parameters,
         CancellationToken cancellationToken = default) =>
-        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+        PagePersonalAsync(sellerId, parameters, (page, pageSize, ct) =>
             _auctions.ListBySellerAsync(sellerId, page, pageSize, ct), cancellationToken);
 
     public Task<PagedResult<AuctionListItemResponse>> GetPurchasesAsync(
         Guid bidderId,
         MineQueryParameters parameters,
         CancellationToken cancellationToken = default) =>
-        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+        PagePersonalAsync(bidderId, parameters, (page, pageSize, ct) =>
             _auctions.ListWonByBidderAsync(bidderId, page, pageSize, ct), cancellationToken);
 
     public Task<PagedResult<AuctionListItemResponse>> GetParticipatedAsync(
         Guid bidderId,
         MineQueryParameters parameters,
         CancellationToken cancellationToken = default) =>
-        PagePersonalAsync(parameters, (page, pageSize, ct) =>
+        PagePersonalAsync(bidderId, parameters, (page, pageSize, ct) =>
             _auctions.ListParticipatedAsync(bidderId, page, pageSize, ct), cancellationToken);
 
     private async Task<PagedResult<AuctionListItemResponse>> PagePersonalAsync(
+        Guid viewerId,
         MineQueryParameters parameters,
         Func<int, int, CancellationToken, Task<(IReadOnlyList<AuctionProjection> Items, int TotalItems)>> load,
         CancellationToken cancellationToken)
@@ -66,7 +67,7 @@ public class AuctionQueryService : IAuctionQueryService
 
         return new PagedResult<AuctionListItemResponse>
         {
-            Items = items.Select(a => ToListItem(a, now)).ToList(),
+            Items = items.Select(a => ToListItem(a, now, viewerId)).ToList(),
             Page = parameters.Page,
             PageSize = parameters.PageSize,
             TotalItems = totalItems
@@ -138,7 +139,10 @@ public class AuctionQueryService : IAuctionQueryService
         }
     }
 
-    private static AuctionListItemResponse ToListItem(AuctionProjection auction, DateTime now) => new()
+    private static AuctionListItemResponse ToListItem(
+        AuctionProjection auction,
+        DateTime now,
+        Guid? currentUserId = null) => new()
     {
         Id = auction.Id,
         Title = auction.Title,
@@ -151,7 +155,10 @@ public class AuctionQueryService : IAuctionQueryService
         StartsAt = auction.StartsAt,
         EndsAt = auction.EndsAt,
         Status = ResolveStatus(auction, now),
-        SecondsRemaining = CalculateSecondsRemaining(auction.EndsAt, now)
+        SecondsRemaining = CalculateSecondsRemaining(auction.EndsAt, now),
+        IsCurrentUserWinning = currentUserId is null
+            ? null
+            : auction.HighestBidderId == currentUserId
     };
 
     // Una subasta que venció pero todavía no pasó por el worker sigue guardada como Active.

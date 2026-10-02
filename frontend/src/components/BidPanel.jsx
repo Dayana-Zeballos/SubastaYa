@@ -4,6 +4,7 @@ import { apiFetch, getToken } from "../api/client";
 import { placeBid } from "../api/bids";
 import { getBalance } from "../api/wallet";
 import { useAuth } from "../auth/AuthContext";
+import { useToast } from "./ToastContext";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -13,6 +14,7 @@ const money = new Intl.NumberFormat("es-AR", {
 
 export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
   const { ready, isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
   const location = useLocation();
   const [auction, setAuction] = useState(null);
   const [available, setAvailable] = useState(null);
@@ -84,6 +86,7 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
       setError("Poné un monto.");
+      showToast("Poné un monto.", "error");
       setSubmitting(false);
       return;
     }
@@ -97,14 +100,19 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
       setAuction(detail);
       setAmount(String(detail.nextMinimumBid));
 
-      setSuccess(
-        bid.antiSnipingApplied
-          ? "Oferta enviada. Se alargó un par de minutos el cierre."
-          : "Listo, vas ganando. El dinero quedó retenido.",
-      );
+      const okMessage = bid.antiSnipingApplied
+        ? "Oferta enviada. Se alargó un par de minutos el cierre."
+        : "Listo, vas ganando. El dinero quedó retenido.";
+      setSuccess(okMessage);
+      showToast("Oferta registrada.", "ok");
+      if (bid.antiSnipingApplied) {
+        showToast("Se extendió el cierre 2 minutos (anti-sniping).", "warn");
+      }
       onPlaced?.(bid, detail);
     } catch (err) {
-      setError(err.message || "No se pudo enviar la oferta.");
+      const message = bidErrorMessage(err);
+      setError(message);
+      showToast(message, "error");
     } finally {
       setSubmitting(false);
     }
@@ -169,4 +177,17 @@ export function BidPanel({ auctionId, nextMinimumBid, status, onPlaced }) {
       </form>
     </section>
   );
+}
+
+function bidErrorMessage(err) {
+  if (err?.status === 409) {
+    return "Alguien ofertó en este mismo instante. Mirá el precio nuevo e intentá otra vez.";
+  }
+
+  const detail = String(err?.message || "");
+  if (detail.toLowerCase().includes("insuficiente")) {
+    return "Saldo disponible insuficiente. Cargá fondos en tu billetera.";
+  }
+
+  return detail || "No se pudo enviar la oferta.";
 }

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSecondsRemaining } from "../hooks/useSecondsRemaining";
 import { productBlurb, productName } from "../lib/productCopy";
-import { formatCountdown, formatMoney, statusLabel } from "../lib/format";
+import { countdownUrgency, formatCountdown, formatMoney, statusLabel } from "../lib/format";
 import { categoryImage, productImage } from "../lib/productImage";
 
 export function AuctionCard({ auction }) {
   const remaining = useSecondsRemaining(auction.secondsRemaining);
   const [brokenImage, setBrokenImage] = useState(false);
   const closed = remaining <= 0 || auction.status === "finished" || auction.status === "deserted";
+  const urgency = closed ? "" : countdownUrgency(remaining);
   const image = productImage(auction);
   const [src, setSrc] = useState(image);
   const name = productName(auction.title);
@@ -47,7 +48,7 @@ export function AuctionCard({ auction }) {
         <h2>{name}</h2>
         {blurb ? <p className="auction-card-blurb">{blurb}</p> : null}
         <p className="price">{formatMoney(auction.currentPrice)}</p>
-        <p className="muted">
+        <p className={urgency ? `muted countdown-${urgency}` : "muted"}>
           {auction.bidCount} {auction.bidCount === 1 ? "oferta" : "ofertas"}
           {" · "}
           {closed ? "Cerrada" : `Cierra en ${formatCountdown(remaining)}`}

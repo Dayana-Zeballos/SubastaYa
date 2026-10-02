@@ -19,11 +19,11 @@ public class AuctionProjection
     public DateTime StartsAt { get; set; }
     public DateTime EndsAt { get; set; }
     public AuctionStatus Status { get; set; }
+    public Guid? HighestBidderId { get; set; }
 }
 
 public class AuctionDetailProjection : AuctionProjection
 {
     public string SellerUserName { get; set; } = string.Empty;
     public string? HighestBidderUserName { get; set; }
-    public Guid? HighestBidderId { get; set; }
 }

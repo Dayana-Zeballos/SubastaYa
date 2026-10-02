@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getAuction, getAuctionBids } from "../api/auctions";
 import { useAuth } from "../auth/AuthContext";
 import { BidPanel } from "../components/BidPanel";
+import { useToast } from "../components/ToastContext";
 import { useAuctionHub } from "../hooks/useAuctionHub";
 import { useSecondsRemaining } from "../hooks/useSecondsRemaining";
-import { formatCountdown, formatDateTime, formatMoney, statusLabel } from "../lib/format";
+import { countdownUrgency, formatCountdown, formatDateTime, formatMoney, statusLabel } from "../lib/format";
 import { productBlurb, productName } from "../lib/productCopy";
 import { categoryImage, productImage } from "../lib/productImage";
 
 export function AuctionRoomPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [error, setError] = useState("");
@@ -19,6 +21,7 @@ export function AuctionRoomPage() {
   const remaining = useSecondsRemaining(auction?.secondsRemaining ?? 0);
   const [brokenImage, setBrokenImage] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
+  const prevWinning = useRef(null);
 
   const reload = useCallback(() => {
     if (!id) {
@@ -64,6 +67,20 @@ export function AuctionRoomPage() {
     setBrokenImage(false);
   }, [auction]);
 
+  useEffect(() => {
+    if (!auction || !user || user.userName === auction.sellerUserName || !auction.highestBidderAlias) {
+      prevWinning.current = null;
+      return;
+    }
+
+    const current = auction.isCurrentUserWinning;
+    if (prevWinning.current === true && current === false) {
+      showToast("Te superaron. Volvé a ofertar.", "warn");
+    }
+
+    prevWinning.current = current;
+  }, [auction, user, showToast]);
+
   if (loading) {
     return <p className="muted">Cargando…</p>;
   }
@@ -85,6 +102,7 @@ export function AuctionRoomPage() {
   const isSeller = Boolean(user && user.userName === auction.sellerUserName);
   const winning =
     !user || isSeller || !auction.highestBidderAlias ? null : auction.isCurrentUserWinning;
+  const urgency = closed ? "" : countdownUrgency(remaining);
   const name = productName(auction.title);
   const blurb = productBlurb(auction.description);
 
@@ -120,7 +138,7 @@ export function AuctionRoomPage() {
         <div className="stack">
           <div className="panel">
             {closed ? null : <p className="eyebrow">Cierra en</p>}
-            <p className="countdown">
+            <p className={urgency ? `countdown countdown-${urgency}` : "countdown"}>
               {closed ? statusLabel(auction.status) : formatCountdown(remaining)}
             </p>
             {winning === true ? <p className="badge badge-win">Vas ganando</p> : null}

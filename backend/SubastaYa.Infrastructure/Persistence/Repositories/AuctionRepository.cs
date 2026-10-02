@@ -68,7 +68,8 @@ public class AuctionRepository : IAuctionRepository
                 BidCount = a.Bids.Count,
                 StartsAt = a.StartsAt,
                 EndsAt = a.EndsAt,
-                Status = a.Status
+                Status = a.Status,
+                HighestBidderId = a.HighestBidderId
             })
             .ToListAsync(cancellationToken);
 
@@ -218,7 +219,8 @@ public class AuctionRepository : IAuctionRepository
                 BidCount = a.Bids.Count,
                 StartsAt = a.StartsAt,
                 EndsAt = a.EndsAt,
-                Status = a.Status
+                Status = a.Status,
+                HighestBidderId = a.HighestBidderId
             })
             .ToListAsync(cancellationToken);
 

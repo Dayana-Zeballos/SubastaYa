@@ -18,4 +18,8 @@ public class AuctionListItemResponse
     // Segundos que faltan para el cierre. El frontend arranca el contador con este número
     // en lugar de restar contra el reloj de la máquina del usuario, que puede estar corrido.
     public long SecondsRemaining { get; set; }
+
+    // Null en el catálogo público (no hay token o no se pide). En /api/me/bids dice
+    // si el usuario del token sigue liderando o ya lo superaron.
+    public bool? IsCurrentUserWinning { get; set; }
 }
