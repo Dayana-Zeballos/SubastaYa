@@ -59,8 +59,32 @@ export function PublishPage() {
     };
   }, []);
 
+  function validate() {
+    const price = Number(startingPrice);
+    const increment = Number(minimumIncrement);
+    if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(increment) || increment <= 0) {
+      return "El precio base y de a cuánto sube tienen que ser mayores a cero.";
+    }
+
+    const start = scheduleStart && startsAt ? new Date(startsAt) : new Date();
+    const end = endsAt ? new Date(endsAt) : new Date(NaN);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+      return scheduleStart
+        ? "El cierre tiene que ser después de que empiece."
+        : "El cierre tiene que ser después de ahora.";
+    }
+
+    return "";
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+    const message = validate();
+    if (message) {
+      setError(message);
+      return;
+    }
+
     setError("");
     setSubmitting(true);
 
@@ -98,6 +122,7 @@ export function PublishPage() {
       </p>
 
       <form className="panel form" onSubmit={handleSubmit}>
+        {error ? <p className="error">{error}</p> : null}
         <label>
           Título
           <input
@@ -195,7 +220,6 @@ export function PublishPage() {
         {preview ? (
           <img className="publish-preview" src={preview} alt="" />
         ) : null}
-        {error ? <p className="error">{error}</p> : null}
         <button type="submit" className="primary" disabled={submitting || !categoryId}>
           {submitting ? "Publicando…" : "Publicar"}
         </button>
